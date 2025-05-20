@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Awake Escape</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background-color: white;
+      cursor: none;
+      transition: background-color 0.3s ease;
+    }
+
+    body.dark {
+      background-color: black;
+    }
+
+    #eyeCursor {
+      position: fixed;
+      width: 60px;
+      height: 60px;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      user-select: none;
+    }
+
+    .uhOh {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      color: white;
+      display: none;
+      font-family: monospace;
+    }
+
+    .eye-container {
+      position: fixed;
+      background: white;
+      border-radius: 50% / 50%;
+      opacity: 0;
+      transition: opacity 30s linear;
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .eye-container.fade-in {
+      opacity: 1;
+    }
+
+    .pupil {
+      background: black;
+      border-radius: 50%;
+      position: absolute;
+      will-change: transform;
+    }
+
+    /* === LOADING SCREEN STYLES === */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 1;
+      transition: opacity 1s ease;
+    }
+
+    .loading-text {
+      font-size: 1rem;
+      font-family: monospace;
+      animation: colorToggle 0.3s infinite alternate;
+    }
+
+    @keyframes colorToggle {
+      0%   { color: rgb(147, 147, 147); }
+      100% { color: black; }
+    }
+
+    .loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-text">locking in</div>
+  </div>
+
+  <!-- Game UI -->
+  <div class="uhOh" id="uhOh">escape</div>
+  <img id="eyeCursor" src="https://www.freeiconspng.com/thumbs/eye-icon/eyeball-icon-png-eye-icon-1.png" alt="cursor eye">
+
+  <script>
+    // Hide loading screen after 2 seconds
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loadingScreen').classList.add('hidden');
+      }, 2000);
+    });
+
+    const eyeCursor = document.getElementById('eyeCursor');
+    const uhOhDisplay = document.getElementById('uhOh');
+    let holdTimer;
+    let heldLongEnough = false;
+    let lockedDarkMode = false;
+    let eyesShown = false;
+    const eyes = [];
+
+    document.addEventListener('mousemove', (e) => {
+      eyeCursor.style.left = `${e.clientX}px`;
+      eyeCursor.style.top = `${e.clientY}px`;
+
+      eyes.forEach(eye => {
+        const pupil = eye.querySelector('.pupil');
+        const rect = eye.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const dx = e.clientX - centerX;
+        const dy = e.clientY - centerY;
+        const angle = Math.atan2(dy, dx);
+
+        const maxX = (rect.width - pupil.offsetWidth) / 2;
+        const maxY = (rect.height - pupil.offsetHeight) / 2;
+
+        const x = Math.cos(angle) * maxX;
+        const y = Math.sin(angle) * maxY;
+
+        pupil.style.transform = `translate(${x}px, ${y}px)`;
+      });
+    });
+
+    document.body.addEventListener('mousedown', () => {
+      if (lockedDarkMode) return;
+
+      document.body.classList.add('dark');
+      eyeCursor.src = "https://i.postimg.cc/N0wdzfYN/closed-eye-01.png";
+      uhOhDisplay.style.display = 'none';
+      heldLongEnough = false;
+
+      if (!eyesShown) {
+        createEyes();
+        eyesShown = true;
+      }
+
+      holdTimer = setTimeout(() => {
+        heldLongEnough = true;
+        lockedDarkMode = true;
+      }, 5000);
+    });
+
+    document.body.addEventListener('mouseup', () => {
+      clearTimeout(holdTimer);
+      if (!heldLongEnough && !lockedDarkMode) {
+        document.body.classList.remove('dark');
+        eyeCursor.src = "https://www.freeiconspng.com/thumbs/eye-icon/eyeball-icon-png-eye-icon-1.png";
+        uhOhDisplay.style.display = 'block';
+
+        eyes.forEach(eye => eye.remove());
+        eyes.length = 0;
+        eyesShown = false;
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.body.classList.remove('dark');
+        eyeCursor.src = "https://www.freeiconspng.com/thumbs/eye-icon/eyeball-icon-png-eye-icon-1.png";
+        uhOhDisplay.style.display = 'none';
+        lockedDarkMode = false;
+        eyes.forEach(eye => eye.remove());
+        eyes.length = 0;
+        eyesShown = false;
+      }
+    });
+
+    function createEyes() {
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      const positions = [];
+      const minDist = 220;
+
+      for (let i = 0; i < 3; i++) {
+        let attempts = 0;
+        let pos, overlapping;
+
+        do {
+          overlapping = false;
+          const scale = Math.random() * 0.5 + 1;
+          const width = 150 * scale;
+          const height = 100 * scale;
+          const x = Math.random() * (screenWidth - width);
+          const y = Math.random() * (screenHeight - height);
+
+          for (const other of positions) {
+            const dx = other.x - x;
+            const dy = other.y - y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < minDist) {
+              overlapping = true;
+              break;
+            }
+          }
+
+          if (!overlapping) {
+            pos = { x, y, width, height };
+            positions.push(pos);
+          }
+
+          attempts++;
+        } while (overlapping && attempts < 100);
+
+        if (pos) {
+          const eye = document.createElement('div');
+          eye.className = 'eye-container';
+          eye.style.width = `${pos.width}px`;
+          eye.style.height = `${pos.height}px`;
+          eye.style.left = `${pos.x}px`;
+          eye.style.top = `${pos.y}px`;
+
+          const pupil = document.createElement('div');
+          const pupilSize = Math.min(pos.width, pos.height) * 0.35;
+          pupil.className = 'pupil';
+          pupil.style.width = `${pupilSize}px`;
+          pupil.style.height = `${pupilSize}px`;
+
+          eye.appendChild(pupil);
+          document.body.appendChild(eye);
+          eyes.push(eye);
+
+          requestAnimationFrame(() => {
+            eye.classList.add('fade-in');
+          });
+        }
+      }
+    }
+  </script>
+</body>
+</html>

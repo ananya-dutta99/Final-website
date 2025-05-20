@@ -1,0 +1,77 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>zzzz</title>
+
+
+  <style>
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: rgb(0, 0, 0);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      cursor: not-allowed;
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .cell {
+      flex: 0 0 0.3%;
+      aspect-ratio: 1 / 1;
+    }
+
+    .white {
+      color: white;
+    }
+
+    .black {
+      color: black;
+    }
+
+    
+  </style>
+</head>
+<body>
+    
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const totalCells = 40000; 
+
+    const cells = [];
+
+    for (let i = 0; i < totalCells; i++) {
+      const cell = document.createElement('div');
+      cell.innerHTML = "z"
+      cell.className = 'cell ' + (Math.random() < 0.3 ? 'white' : 'black');
+      grid.appendChild(cell);
+      cells.push(cell);
+    }
+
+    setInterval(() => {
+      for (let i = 0; i < 10000; i++) { // Flip 500 cells randomly every 100ms
+        const index = Math.floor(Math.random() * totalCells);
+        const cell = cells[index];
+        cell.classList.toggle('white');
+        cell.classList.toggle('black');
+      }
+    }, 100);
+  </script>
+</body>
+</html>

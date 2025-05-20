@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flickering Z Grid with Webcam</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      cursor: not-allowed;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 100px);
+      grid-template-rows: repeat(auto-fill, 100px);
+      gap: 1px;
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: black;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: center;
+      font-family: monospace;
+      position: relative;
+    }
+    .z {
+      width: 50%;
+      height: 50%;
+      font-size: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    #video { display: none; }
+    #camCanvas {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    #loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  color: white;
+  font-family: monospace;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#loading-text {
+  font-size: 1.2rem;
+  opacity: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+  </style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div id="loading-text">a peek into your dreams...</div>
+</div>
+
+<video id="video" autoplay playsinline muted></video>
+<canvas id="camCanvas"></canvas>
+<div class="grid" id="grid"></div>
+
+<script>
+const grid = document.getElementById('grid');
+const canvas = document.getElementById('camCanvas');
+const ctx = canvas.getContext('2d');
+const video = document.getElementById('video');
+const width = 100, height = 100;
+const cols = Math.floor(window.innerWidth / width);
+const rows = Math.floor(window.innerHeight / height);
+const totalCells = cols * rows;
+const cells = [];
+let activeCamCell = null, isSwitching = false;
+
+// Create cell with 4 flickering Zs
+function createCell() {
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  for (let i = 0; i < 4; i++) {
+    const z = document.createElement('div');
+    z.className = 'z';
+    z.textContent = 'Z';
+    cell.appendChild(z);
+    setInterval(() => {
+      if (cell !== activeCamCell)
+        z.style.color = Math.random() > 0.5 ? 'white' : 'black';
+    }, 100 + Math.random() * 150);
+  }
+  // Background flicker
+  setInterval(() => {
+    if (cell !== activeCamCell)
+      cell.style.backgroundColor = Math.random() > 0.1 ? 'black' : 'white';
+  }, 150 + Math.random() * 200);
+
+  return cell;
+}
+
+// Populate grid
+for (let i = 0; i < totalCells; i++) {
+  const cell = createCell();
+  grid.appendChild(cell);
+  cells.push(cell);
+}
+
+// Move webcam to a random cell
+function moveWebcamWindow() {
+  if (activeCamCell) activeCamCell.replaceChildren(...createCell().children);
+  const index = Math.floor(Math.random() * totalCells);
+  activeCamCell = cells[index];
+  const col = index % cols, row = Math.floor(index / cols);
+  canvas.style.left = `${col * width}px`;
+  canvas.style.top = `${row * height}px`;
+}
+
+// Render grayscale webcam in canvas
+function drawGrayscaleWebcam() {
+  const sx = parseInt(canvas.style.left);
+  const sy = parseInt(canvas.style.top);
+  const scaleX = video.videoWidth / window.innerWidth;
+  const scaleY = video.videoHeight / window.innerHeight;
+  if (video.videoWidth && video.videoHeight) {
+    ctx.drawImage(video, sx * scaleX, sy * scaleY, width * scaleX, height * scaleY, 0, 0, width, height);
+    const imgData = ctx.getImageData(0, 0, width, height);
+    for (let i = 0; i < imgData.data.length; i += 4) {
+      const avg = (imgData.data[i] + imgData.data[i + 1] + imgData.data[i + 2]) / 3;
+      imgData.data[i] = imgData.data[i + 1] = imgData.data[i + 2] = avg;
+    }
+    ctx.putImageData(imgData, 0, 0);
+  }
+  requestAnimationFrame(drawGrayscaleWebcam);
+}
+
+// Check if eye is in webcam area
+function isEyeInWindow(x, y) {
+  const camX = parseInt(canvas.style.left), camY = parseInt(canvas.style.top);
+  return x >= camX && x <= camX + width && y >= camY && y <= camY + height;
+}
+
+// Handle face/eye tracking
+function handleFace(results) {
+  const lm = results.multiFaceLandmarks?.[0];
+  if (!lm) return;
+  const eyes = [lm[468], lm[473]].map(p => ({ x: p.x * window.innerWidth, y: p.y * window.innerHeight }));
+  for (const eye of eyes) {
+    if (isEyeInWindow(eye.x, eye.y) && !isSwitching) {
+      isSwitching = true;
+      moveWebcamWindow();
+      isSwitching = false;
+      break;
+    }
+  }
+}
+
+// Start webcam + FaceMesh
+async function start() {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+
+  const faceMesh = new FaceMesh({
+    locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+  });
+
+  faceMesh.setOptions({
+    maxNumFaces: 1,
+    refineLandmarks: true,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+
+  faceMesh.onResults(handleFace);
+
+  const camera = new Camera(video, {
+    onFrame: async () => await faceMesh.send({ image: video }),
+    width: 640, height: 480
+  });
+
+video.onloadedmetadata = () => {
+  camera.start();
+  drawGrayscaleWebcam();
+  moveWebcamWindow();
+
+  // ✅ Hide the loading screen once the webcam is ready
+  setTimeout(() => {
+    document.getElementById('loading-screen').style.display = 'none';
+  }, 3000);
+};
+
+}
+
+canvas.width = width;
+canvas.height = height;
+start();
+</script>
+</body>
+</html>

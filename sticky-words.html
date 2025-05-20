@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sticky Words with Tail</title>
+  <style>
+
+@import url('https://fonts.googleapis.com/css2?family=Doto:wght@100..900&display=swap');
+
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #111;
+      font-family: "Doto";
+    }
+
+    .word {
+      position: absolute;
+      font-size: 2em;
+      color: white;
+      cursor: pointer;
+      pointer-events: auto;
+      user-select: none;
+      opacity: 0.8;
+      transition: transform 0.2s ease-out;
+    }
+
+  
+  </style>
+</head>
+<body>
+
+ //Scattered words 
+<div class="word" style="top: 20%; left: 30%;">I am here</div>
+<div class="word" style="top: 40%; left: 60%;">I am there</div>
+<div class="word" style="top: 70%; left: 20%;">I am alive</div>
+<div class="word" style="top: 10%; left: 80%;">I am dead</div>
+<div class="word" style="top: 60%; left: 50%;">I am weird</div>
+
+<script>
+
+
+  const words = document.querySelectorAll('.word');
+  let stuckWords = [];
+  let timeOffset = 0;  // Initial time offset for the trailing effect
+
+  // Function to move words with the cursor
+  function moveWithCursor(e) {
+    let offsetX = 0;
+    let offsetY = 0;
+
+    // Stack all stuck words together and offset their positions slightly to avoid overlap
+    stuckWords.forEach((word, index) => {
+      offsetX += 10 * index;  // Small offset for each word in the stack
+      offsetY += 10 * index;
+      
+      // Add a slight delay based on index to simulate the trailing effect
+      setTimeout(() => {
+        word.style.left = `${e.clientX + offsetX}px`;
+        word.style.top = `${e.clientY + offsetY}px`;
+        word.style.transform = `translate(-50%, -50%)`;  // Center the words properly
+      }, timeOffset * index);  // Add delay based on index to create the trail effect
+
+      // Gradually increase the time offset for the next word in the tail
+      timeOffset = Math.max(timeOffset, 50);  // Ensure there's a noticeable delay (50ms between words)
+    });
+  }
+
+  // Add hover functionality to each word
+  words.forEach(word => {
+    word.addEventListener('mouseenter', () => {
+      // If the word is not already stuck, stick it
+      if (!stuckWords.includes(word)) {
+        stuckWords.push(word);  // Add the word to the stuck array
+        word.style.pointerEvents = 'none';  // Disable interaction after sticking
+        document.addEventListener('mousemove', moveWithCursor); // Move stuck words with the cursor
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

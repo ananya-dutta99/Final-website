@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Current Time</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: black;
+      color: white;
+      font-family: monospace;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .time-display {
+      font-size: 3rem;
+      margin-bottom: 2rem;
+    }
+
+    .slider-container {
+      position: absolute;
+      bottom: 40px;
+      width: 80%;
+      color:blueviolet;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+
+    .slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 100%; /* Full-width */
+  height: 25px; /* Specified height */
+  background: #444444; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+    }
+
+    .slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  background: #04AA6D; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+    }
+    
+
+  </style>
+</head>
+<body>
+  <div class="time-display" id="time"></div>
+
+  <div class="slider-container">
+    <input type="range" id="timeSlider" min="-720" max="720" value="0" />
+  </div>
+
+
+  
+  <script>
+    const timeDisplay = document.getElementById('time');
+    const slider = document.getElementById('timeSlider');
+
+    const baseTime = new Date(); // Capture initial time when page loads
+
+    function updateDisplayedTime(offsetMinutes = 0) {
+      const adjustedTime = new Date(baseTime.getTime() + offsetMinutes * 60000);
+      timeDisplay.textContent = adjustedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    slider.addEventListener('input', () => {
+      const offset = parseInt(slider.value, 10);
+      updateDisplayedTime(offset);
+    });
+
+    // Show base time initially
+    updateDisplayedTime(0);
+
+
+
+  </script>
+</body>
+</html>
+
+
+
+
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Longitude Time</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      height: 100vh;
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    .container {
+      display: flex;
+      width: 36000px; /* 100px per column */
+      height: 100vh;
+    }
+
+    .column {
+      width: 100px;
+      height: 100vh;
+      flex-shrink: 0;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .time-display {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3rem;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="time-display" id="time"></div>
+  <div class="container" id="container"></div>
+
+  <script>
+    const container = document.getElementById('container');
+    const timeDisplay = document.getElementById('time');
+
+    // Create 360 columns
+    for (let i = 0; i < 360; i++) {
+      const col = document.createElement('div');
+      col.className = 'column';
+      container.appendChild(col);
+    }
+
+    // Scroll to approximate EST position on load (EST ≈ -75° -> index 105)
+    window.scrollTo({ left: 105 * 100, behavior: 'instant' });
+
+    function updateTime() {
+      const scrollLeft = window.scrollX;
+      const columnWidth = 100;
+      const columnIndex = Math.floor(scrollLeft / columnWidth);
+      const longitude = columnIndex - 180; // -180 to +179
+
+      // Calculate UTC offset assuming 15° per hour
+      const utcOffset = Math.floor(longitude / 15);
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const localTime = new Date(utc + 3600000 * utcOffset);
+      const timeStr = localTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      timeDisplay.textContent = timeStr;
+    }
+
+    window.addEventListener('scroll', updateTime);
+    updateTime();
+    setInterval(updateTime, 1000);
+  </script>
+</body>
+</html>

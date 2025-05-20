@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buffer sleep</title>
+  <script src="https://cdn.jsdelivr.net/npm/tone@latest/build/Tone.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      height: 100vh;
+      overflow: hidden;
+      cursor: wait;
+    }
+
+    /* Splash screen */
+    .splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: black;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      transition: opacity 1s ease-in-out;
+    }
+
+    .splash-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .center-spinner {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+
+    .dot {
+      position: absolute;
+      width: 20%;
+      height: 20%;
+      background: white;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: rotate(calc(36deg * var(--i))) translate(180%);
+      animation: fade 1s linear infinite;
+      animation-delay: calc(0.1s * var(--i) + var(--offset, 0s));
+      opacity: 0.1;
+    }
+
+    @keyframes fade {
+      0%, 100% { opacity: 0.1; }
+      50% { opacity: 1; }
+    }
+
+    /* Main animation */
+    .main-content {
+      opacity: 0;
+      animation: main-fade-in 1s ease-in-out 3s forwards;
+    }
+
+    @keyframes main-fade-in {
+      to { opacity: 1; }
+    }
+
+    .spinner-container {
+      position: absolute;
+      top: -10;
+      width: 100%;
+      height: 20%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .spinner {
+      position: absolute;
+    }
+
+    .blue-drop {
+      position: absolute;
+      top: -50px;
+      width: 40px;
+      height: 40px;
+      background-image: url('imgs/blue-load.gif');
+      background-size: cover;
+      background-repeat: no-repeat;
+      transform: translateX(-50%);
+      z-index: 1;
+      animation: fall-slow 5s linear forwards;
+    }
+
+    @keyframes fall-slow {
+      from { top: -50px; opacity: 0; }
+      to   { top: 100vh; opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div class="splash-screen" id="splash">
+    <div class="center-spinner" id="splashSpinner"></div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" id="main">
+    <div class="spinner-container" id="cloudContainer"></div>
+  </div>
+
+  <script>
+    const splash = document.getElementById('splash');
+    const splashSpinner = document.getElementById('splashSpinner');
+    const cloudContainer = document.getElementById('cloudContainer');
+    const numSpinners = 70;
+    const numRaindrops = 50;
+
+    // Create splash screen spinner
+    function createCenterSpinner(target) {
+      const spinner = document.createElement('div');
+      spinner.className = 'spinner';
+      spinner.style.position = 'relative';
+      spinner.style.width = '100%';
+      spinner.style.height = '100%';
+
+      for (let i = 0; i < 10; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        dot.style.setProperty('--i', i);
+        spinner.appendChild(dot);
+      }
+
+      target.appendChild(spinner);
+    }
+
+    createCenterSpinner(splashSpinner);
+
+    // After 3 seconds, hide splash and start animation
+    setTimeout(() => {
+      splash.classList.add('hidden');
+
+      // CLOUDS
+      for (let s = 0; s < numSpinners; s++) {
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+
+        const size = Math.floor(Math.random() * 80) + 70;
+        spinner.style.width = `${size}px`;
+        spinner.style.height = `${size}px`;
+
+        const top = Math.random() * 5;
+        const left = Math.random() * 100;
+        spinner.style.top = `${top}vh`;
+        spinner.style.left = `${left}vw`;
+
+        for (let i = 0; i < 10; i++) {
+          const dot = document.createElement('div');
+          dot.className = 'dot';
+          dot.style.setProperty('--i', i);
+          dot.style.setProperty('--offset', `${Math.random().toFixed(2)}s`);
+          spinner.appendChild(dot);
+        }
+
+        cloudContainer.appendChild(spinner);
+      }
+
+      // RAIN
+      // Define a synth globally
+const synth = new Tone.Synth().toDestination();
+
+// Define a set of musical notes
+const notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4'];
+
+function createRaindrop(delay = 0) {
+  setTimeout(() => {
+    const drop = document.createElement('div');
+    drop.className = 'blue-drop';
+    drop.style.left = `${Math.random() * 100}vw`;
+    drop.style.animationDelay = '0s';
+    
+    // Add mouseenter event for sound
+    drop.addEventListener('mouseenter', async () => {
+      await Tone.start(); // required to unlock audio context on some browsers
+      const note = notes[Math.floor(Math.random() * notes.length)];
+      synth.triggerAttackRelease(note, '8n');
+    });
+
+    document.body.appendChild(drop);
+
+    // Remove after 5 seconds
+    setTimeout(() => drop.remove(), 5000);
+  }, delay);
+}
+
+      // Initial drops
+      for (let i = 0; i < numRaindrops; i++) {
+        const delay = Math.random() * 5000;
+        createRaindrop(delay);
+      }
+
+      // Continuous rain
+      setInterval(() => {
+        createRaindrop();
+      }, 300);
+    }, 3000);
+  </script>
+</body>
+</html>

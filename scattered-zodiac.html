@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Zodiac count</title>
+  
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #111;
+      overflow: hidden;
+      transition: background 0.5s ease;
+    }
+
+    .letter {
+      position: absolute;
+      font-size: 12px;
+      font-family: monospace;
+      color: white;
+      pointer-events: auto;
+      user-select: none;
+      animation: float 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(0); }
+      100% { transform: translateY(-10px); }
+    }
+
+    #zodiac-display {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: monospace;
+      font-size: 14px;
+      white-space: pre;
+      color: black;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: 10;
+      pointer-events: none;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="zodiac-display"></div>
+
+<script>
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+  const zodiacSigns = [
+    'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
+    'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'
+  ];
+
+  // ASCII art placeholders for each sign
+  const zodiacAsciiArt = {
+    aries: `
+                                                           
+                                        .-*@@@@@#-.    
+                                 .*@@#:+@#+#@@@%@+%+   
+                                 +@%@@@**@@@@@%@@@%*#. 
+                                 .@@%@@@@%@-:=@:+@@%*- 
+                                  -@:..-@*:*=#= .@@@@+ 
+                             .*. -@-.::.-*::@%. .@*@#= 
+                             :@%%@*=...  ..:@##*%#%@%. 
+                              :@@@@#:.-#@@*=%@@@@@@+   
+                                  .=+%@#=:   *%=-:     
+              .:#@@@@@@@@*-.... ...=@+.   .:.=#        
+            :##-.        ..-=+***+=:.   .+:-###        
+      ...:#@@+*.   ..               :-. .*#+*@=        
+     .*%*#%@*-.   .=%=.::.    ..   .=+*=-:*@@@:        
+      .-@%#@*=. .:*%@**-.:=:.:++:..-+#@@#+@@@+         
+        .:=@*:. :*%@@@@#**-:=%@*+..+@@@@#*@@#.         
+          .%-...=%@@@@@@@@%@%@@@+.:*@@@@%@@%.          
+          +%-..:*@@@@@@@@@@@@@@%=.-*@@@@@+#+           
+        .+@=..=#@@%@@@@*-##:*@@@*.-%@@@@%+#+           
+       .%+..=*@@#@@@@@@#@-.   :@#.=*@@@@@#*+.          
+      .@-.-#@@%%@@@@%*%=.      -#.-*@%@@@@=*.          
+      +*-%@@@+.-@%@@+@-     -@@#@:-*@@@@@%@=           
+     .%-*@@+.   :%*@:#=    -%#@@@#:#@@@@#=.            
+    :@+*@@:      .@%@:@:     .+@@@-@@#.                
+   .#+-%@+        -%@@*@+.      -%:#@#.                
+   .#*.+@@.       .#*@@=#=      +*:%@@-                
+    *#:*@@@.       .*@@@#@-     .%=+@@@.               
+    +@+@@@%+.       .@@@@@@:    .#++@@@*               
+    .=%@@@%+.        .-+##*+.    *@+**@@-              
+                                  ..=+=.               
+    `,
+    taurus: `
+                                                           
+                                                       
+                        .....                          
+                      -@*...:=%@*.                     
+                     :%#%@@@%##%%@@@@@*.               
+                   -%*#@@@#*%#.    .:=*%%*:            
+                   .+#:##.:+#:+@@@@@#@#.               
+                  -%-   .    .-..:-+%.                 
+                .++.  .=*-+---=-=+*%:                  
+               .##:  .**%@@@@@@@%%#.                   
+             .@+:.:   .=++*+@+                         
+            :#-++*+#--+=.   .*@-       :@*-.           
+           .@=*@@@@@@@#*-     .*+.     :%=**##=.       
+           +=%@@@@%.:-...       :#%-..  .*%=--=%-.     
+          +%.*@@@@+.-%%%-:...      .:+%@%%#:..:+*#-    
+         .@:.#*@@@=+#*@@+.@@*=.....    .=@@#%+. :%%-   
+         :@.-+@@@@:+%%@@%:@@#%+**##+.   .+@%@#@=.@@*   
+         -@.**@@@@*:#@#@@@@@@@@@@@@*..-.+@@:.*@#+#@:   
+         =*-+@@@#:#*.=@#@@@@@@@@@@@%*++%@@@.  .:-:.    
+        -#:*@@-   -@@*#@@@@@@@@@=*@@#%%@@@#.           
+      .**:#@@+    .....%*##@@@.   +@%#@@@@@@.          
+     -@::#@@:           .#+%@%.    .-*=+@%@%           
+    .%::*@@%.           :%*@@-         =*+@@+          
+   :@:.+%@@=          :*+-*@=         :#.=#@@.         
+  :%@*:=#@#.         -*::%@*          ==.:*@@-         
+    .....          .*@@=+@#          .**@@@#:          
+                     ..:.                              
+                                                       
+    `,
+    gemini: `
+                                                    
+                                                
+              .+**+.          .%@@+             
+          .:*@@@@%:=         :-:=+#%@#:.        
+     ..+@@@@*#*%* .=         :.: =:#@@@@@@+.:   
+     -@%-.+=#+@**  -   :%+    #  :##-%@@@@@@:.  
+     %%-   =%#:  =     :+=#     :. :%@@@@@@@@.  
+     *@@+-+=-@%. :=   =:-+ #   -:  +.*@@@@@@#   
+     .*@@@+.@@%*    *%.+  @=@+    @@@.-@@@@@.   
+       .@#.@*%.-%+@@@:@.   **@@@%@@@@+:-@@.     
+        *:@-  *  +.@%#      +%  --@@: -:+#      
+       - *@   #: %:@+        *- =:#@:  *-@-     
+       = %+  #=  - *@@      :+  . =@@  :-#=     
+       =-%  +-:.-+%@@@      %*--+==%@*  ==#     
+      ..=@ =*   .+@@@@:     #=    .=#@+ + -.    
+      .--@-#:    .*@@@@    ::=%.  -+%@@=#=-.    
+       =+ :*:  =@=@@*%@:   *-#@@#%=*#@@= ==     
+          -+*-#@# :@@=@*  + *@@= =.+@@@@        
+          -#.-@@@* +@=@%  #.#@* +@@+@@@@        
+           . @@@@+# *.:@- :-@+ .+@@@+#@         
+          ::-@@@%=# + +@=: #@* :=#@@:*@+        
+          :.@@ :%:: :. #*#-@@.  **: *+@@        
+          ::*@  +%    +:@:#@-   -*  :.@*        
+          .:#%         ++@@         .+@         
+           ::%         #+@@         --@         
+           -.#*      =-*-:%@=      =-##         
+            +-==   -%#@@-:=.%@.   *-=+          
+                                                
+    `,
+    cancer: `
+                                                
+                                            
+                 :.         :               
+                  :#      -+                
+             .#@@. +#    #@  %@@:           
+            %#@-:   @#  +@.  =.@@@:         
+          .@%%. *=  *@-.@%  -@ :@@@=        
+         -@@=* =@-  :@@*@:  :@# %@%%=       
+        -@@-:*@**    %@@@    @@%%+@-**      
+       -@@%=:@*#+    @@@%    .@%@=@@.=*     
+      -@@@%-:@@#     @%@*     -@@-@@- +=    
+      @+@@*+:@=      @@%*      -@-@@# :@    
+      %*@@%===       %@*#       -%@@+.:%    
+       @@@%%#       =@@+==       =@@@*@.    
+       @@@#==+     .@@@* @:     *@@@%:*     
+       -@@@*%*%   *@@@@@ .@#   *@@@@=+*     
+         *+@%= @: @%@@@@. .@  #@@@=-@       
+     -@:  :%#@@:=@*-@@@%-  -@@@@#+#=   @=   
+      *@@#   :@@@@ %@@@@@-  @@@@-   +@@*    
+  -+   .@@%%+:  .@ @@@@@%:  @.  .=##@@-   =-
+   #%*%:  +@@@##@=+%#@@@%:*%@@##@@@#. .##** 
+     +@@+@@%++@@@:-@@@@#-  :@@@@*-%@@*%@@   
+        =%@@@%#%@:*@@@@%-  =@@##%@@@@+.     
+           -@@@+++*@@@@+.  #@#=@@@=         
+       :+@++@@@@@@+%@@@#- .%@@@@@@*+@*:     
+     =**@@@++@+@@@ +@@@@@@#:@+@#@#+@@@##%   
+    %%@%   =@@@: %@*@@@@@@*#@ .@@@*   *@@#. 
+   =*    .+*@:   %**@@%%%#=+%    @%*     == 
+         +@#     %.=@@@@@@-.#     +@@       
+         #.      +#+%@@@@==#+       @       
+                  @@@@@@@@@@:               
+                +@@@=+##+-*#=%              
+               .%@@@#@@@+.##%=+             
+                %#@*#@@@- .@+@              
+                .#@%#@@@= :@@:              
+                   :%@@@@@=                 
+                                            
+    `,
+    leo: `
+         -*@@@%=                               
+        @:..=*:  %*                             
+       .* :*+-%-  +#                            
+    *:   :::+*@*  *@=       -@@%%%*-::..        
+    ==::   =@@*  .=%.        -#@@%***++++*.     
+    .++=*%@@=   -+@*                    +#=:    
+      #@%.   -#%%@@.      .#=.::::==    #+@=    
+     :@@* .#@@@@@.   --             *%=*@@-     
+     :##*@@@@=            @=@%@%     -          
+      -%@@%::.@@-      @ @@@@@@@     =          
+        @@=..%@@%-  -#@@@@@@@@@@@@-  *.         
+         @@+%@@@@+  +@@#.@@@+%@@@@#: -:         
+          #@%=@@@@%---   -@@#*@  +@@*.:*        
+          :@#@@=-@@- *.    #@+:*   .%%. @       
+          :@#=#   @* +      +% %    =@- %       
+          *@+#.  *@+:      .@#+:    +@: #:      
+         @@++- =@@@-=:    %@@+#   *@@# *        
+      =##**+-+#*+@=+-   -%%%#=* -@*+*=-=        
+                                           
+     
+    `,
+    virgo: `
+                                                    
+                                                
+      @-                                -@      
+    -.+=-            -@@@*-            =--.:    
+    :=**.+          *@#- #+%          *:**+.    
+  .*-.+-%=:+:       @@.. :%%       :+:=%-+.-#   
+    +.-%%==:++=:    @@@+=@##    :=++:=-@%=.+    
+  *.-#@@#:=.##*+: .@+@-  -@-*  :=###.=:#@@#:.*  
+     :#@@%@%*%#*. % .      : - :+#%+%@%@@*.     
+   -#+%@@@*#:%@*@#@:@. +#  -%.%@#@%:#*@@@%+#:   
+     *  *@*:.#.-%@-*@@@ =@@@@=#%=:* :#@*  *     
+        #.@=***#=@-@@@@:-  @@@**%=*++@.*        
+         -*#-+%-@*#@@@@:-*  @@@ -@==#+          
+            . *#@#*: =@# %  *%-@*@ :            
+               *:    @@-.=:  %  ===             
+               =:    @@#%%#=+@@  -=             
+               -=    @@+@@@# -@  %              
+                     *@= #@+.+@                 
+                      @% :@*+@.                 
+                      -@ =#:##                  
+                      %+ @@ :                   
+                      +*-@*.-                   
+                       #+@-.                    
+                       *=# %                    
+                      #.--=                     
+                       *# -                     
+                       +*:.                     
+                        + :                     
+                        * +                     
+                         *                      
+    `,
+    libra: `
+                                                    
+                                                
+                      %@+%                      
+                     :@@:@-                     
+                      .@@.                      
+          %%+  **.+=::%@=% +*+-+*  =+%          
+          @.= *@%    #@@=@%    #@:*+-@          
+            *@%       #@:#       %@*            
+            @@+       #@-*       #@@            
+           %@ #.      %@**       * %%           
+          %*   #      @@.=      #   *%          
+         %+     *    .@@-::    %     ##         
+        @#       #   =%#  +   +       #@        
+       @@#%@@@@@%@%   %@ %   %@%@@@@@@#@%       
+      @@@@::*@@@@@@@ #%@*.@ @%= -*%@@@@@@@      
+      :-@@@@@@@:  *@ %@@@@@ %#@@@@@*   :@-      
+       :#@@=:   -@% .*@@ :@: #*@%=.   @@:       
+          %@@@@@:   *-@@*  @   :@@@@@%          
+                    #*@#=+@%                    
+                     :@@%@-                     
+                     +@@:=%.                    
+                 @-@  +@#=  @:@                 
+                %@@%*.      :*#%                
+                  @%.       %@                  
+                                     
+    `,
+    scorpio: `
+                          :--+-           
+                            :#%%@@%@*#*-        
+                            *:=@+   .*@@*       
+                          :+-+#=      =@@+      
+                                      -#@+      
+                                     .*+%-      
+                    .  =*= -=*=::==-#:*#+       
+                 .*@#@# @%%%%*+--:-:-%@*:       
+           .+=*@%%%@@@@@%--*:::-:-+@#@@#        
+       .=-.---   :**-:  =:= .=-**@*%#@*         
+    =*@%=*@@@@%%%.   .  : :+@%%#+-#%*%@@*.      
+  .**@+.##     *%=-    -#@@%+=+*#%%#@+ -+%+     
+  #==+:*:      :-##@@@@%%@*###@@@#*%%##=  :-    
+  = :=-         ==++#@#@@%@@%**%%%%= -+%*       
+   -*:               =%##*@%#%*=.-*@=   %+      
+                      #@-#   -@#-  @#    :-.    
+                     :=.*#    =@-  @%           
+            -:-:::-+#=+@@+    #@.   ::          
+          =+:=#%%@@@@@#=      *-                
+         *=-.  =#%@%=                           
+           :-=*%@#-                             
+             ..                                 
+    `,
+    sagittarius: `
+                                             
+                . %:                            
+                  +  @                          
+                 @     .#       .               
+               :@         :+-@*#@@@%#@          
+              -@            .--.@@@=@@-    .+:  
+      -@      @-            -@.@@@:=@  %@* -.:::
+            .=--+###+***%%@..#%#@@# -+=*##%%%%  
+             @%@*+#%**@@@@@+ -%@--+%@@@@@#:     
+              ##          .@ -@@ =%@@%@#        
+               +@          ## +@%%#*@@.         
+                 @      +:   #:#:%@=@@          
+                  -  #:       #-@=-@@@          
+                  @-          @ *%##@=@         
+                -#%#+.     :#.   : .@ %         
+          =@@@@-                 -#@=.: -=*@.   
+        #*.:# *=   +=*-:: :  =*-  @@@@@* %@@+   
+       *  +#  %   .#@@@@@#*%=@@@@::+#*.:+ *-%.  
+       = #@@. -*  -+%@@@@@@@#%%@@@@# %@@:@.#@   
+       =#%@@.  #  =%@@@@@@@@*        #:@-*@%    
+       =%@@-   # -@@@*:%-@@@       %-.@@        
+      +-*+    *:.+#%  @ #@=        *=-=+        
+             ..-@+     *=@           *:         
+              *-+@      #+@                     
+               * #@     : *@                    
+               -=.@@     %.@@                   
+               .#-::=     +- #:      
+    `,
+    capricorn: `
+                                                
+                                            
+             -%@@%##%#-                     
+           *%%+*@@@%+==+%@#.                
+      =@%*%@%#@%=          -+               
+        %%@%*#*#%@@+                        
+        %@@%%@%@@*.           :==*=-        
+        @@#*%@@@@@:         -*+=++#@%+.     
+       @@@@@@@@@@@#.                %%#     
+      +#@@#%%@@@@@%@#+=. .+@@@@@%-  -%@:    
+       :+   *%@@@%#@%%@@@@@@@@@@@@@:##@     
+           :%@@%%@@@##@@@@@@@@@@@@@@@@      
+           :#%@@@@**%@@@@@@@@@@@@@@@.       
+            +@***+#@@@@@@@@@@@@@@@@%        
+             -++*@@@@@@@@@@@@@@@@@@+        
+              *##*%@@@@@@@%%@@%@@@@@        
+             *@@*-+@@@+=.   :@@%+%@@@=      
+            +@#.   #@+      .#%:  .@@-      
+             =@%=  *@-     :@@.   .#*       
+              .@@#=+#.    :*%*    +@-       
+                .*#@@=    =*:    =@@*       
+                 .%@*           :%@*        
+                                            
+                                            
+    `,
+    aquarius: `
+                                                           
+                                                       
+                    .==:                               
+                  :#@%*%@@-         -=-*+              
+                  =+%   =%@@@%+=-:+..**=.*.            
+                   =%@@=#-#=-*#%#=.=**  :-@            
+                    :@-.:  +%@@@@@@*=%#%@%@:           
+              ::::+@=.:    -%#.@@@@@@@@@@@@            
+             @@@%=         **  %@@@@@%                 
+             #@@@+ #@--:-##@%@@@@+@@@@+                
+             #*%=@=#-+@%@@@@@#-%+-@@@%@*.              
+            .-@=:#@@* *@@@@+:+-::@*#@#@@:              
+          +##%%%#@- + @. *==@@@..=%%%@@@=.             
+         *%%@%@*    +.%@=:#@@@*  -#%@@@@+-             
+        +*@%*@@.    =::-*@# *@+  -@@#@@@:              
+       +*%%%@@+      @*@%.  -@#  =@@@@@*.              
+      -+%%@%=@         .:=@%@*#@-:@@@==:               
+      +=@@#@*@   .-#%*=..=%*==  .@@@=                  
+      -%@%*@@* #:     .  :@.=    +@@@                  
+     .=@@@%@@= + :@@@@@@*@@%    +=##@:                 
+     -+@*@@@@- #.+#@.   ...=@  ::+*@@@                 
+     ++%+@@@@- +::@@:       .@*:-#@@@@.                
+     +**-@@@@: -=-@@          -@@#@@@@                 
+     +#+-@@@@- :+=@*          .*.*@@@*      -*+=       
+     =#-:@@@@- =-=@.           @+=@@@+*******+.#.      
+     -+::@%@@--+ +@:           :@@@@#=#*%@@@@@@=*.     
+       *.%.:**.:=%@%            -@@@@@@#.    -@#--     
+          #@@@%+=#@-              ..        .@@@*      
+                                                       
+    `,
+    pisces: `
+                                                   
+                                                
+                 *#@    ##=:=+*-                
+                %*#%    #@%      .@#*=:         
+           %.@-%@+%:=  *%@@:        =@@@.*      
+          --@@@@@#- +: -#@+@-# +  @   @@#= *    
+          @@*@@@**=. .%  #:@@@@@:@#@.  #@# .*   
+        +@-@@:  #%%@@@#=  .#:+-@@@@@*@  @@@ +   
+      @@@-@%+ @@**          :#=@@@#%@# = @%:.-  
+    +.+@-@#.  .              *@@+::-  :@ @--.:  
+   :.-@.@@@@: +              - #@@%@#@*# @+.+   
+   % #@-@@@@- ++-%             =*@*@@@%+ @= *   
+  := @%+#@=    @@+-              - @@@@ ## #    
+  =  @@:*@@--:+= @@             -@.@@@:=@+%     
+  =  +@.+@@@@#@@#  %          @+@:*@@=%%%       
+   *.-=@  =@@@@@.::  #  @. .-.  +@@@:@          
+   :=-*@@ * @@.@@@%+:..+ .* -=+@@@%@@*          
+     % #@@-  :#@@@@@%@= *  @%+@@@@@++           
+      :@+=*@* *+:@#*#@@@@  .+*#@@  .            
+              +*.  = :@*    @*%=                
+                    .::     @+                  
+                                                
+    `
+  };
+
+  const totalLetters = 200;
+  const stuckLetters = [];
+  const hoveredChars = [];
+
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+  const displayDiv = document.getElementById('zodiac-display');
+
+  function changeBackgroundColor(sign) {
+    const asciiArt = zodiacAsciiArt[sign] || sign;
+    document.body.style.backgroundColor = 'white';
+    displayDiv.textContent = asciiArt;
+    displayDiv.style.opacity = 1;
+
+    setTimeout(() => {
+      document.body.style.backgroundColor = '#111';
+      displayDiv.style.opacity = 0;
+    }, 2000);
+  }
+
+  function checkForZodiacWord() {
+    const currentWord = hoveredChars.join('').toLowerCase();
+    for (const sign of zodiacSigns) {
+      if (currentWord.endsWith(sign)) {
+        changeBackgroundColor(sign);
+        hoveredChars.length = 0;
+        break;
+      }
+    }
+  }
+
+  // Create letters
+  for (let i = 0; i < totalLetters; i++) {
+    const letter = document.createElement('div');
+    letter.className = 'letter';
+    const char = alphabet[Math.floor(Math.random() * alphabet.length)];
+    letter.textContent = char;
+    letter.dataset.char = char;
+
+    letter.style.left = `${Math.random() * 100}vw`;
+    letter.style.top = `${Math.random() * 100}vh`;
+
+    if (Math.random() < 0.5) {
+      letter.style.filter = `blur(${(Math.random() * 2).toFixed(1)}px)`;
+    }
+
+    letter.style.animationDelay = `${Math.random() * 2}s`;
+
+    letter.addEventListener('mouseenter', () => {
+      if (!stuckLetters.some(obj => obj.el === letter)) {
+        stuckLetters.push({ el: letter, x: mouseX, y: mouseY });
+        hoveredChars.push(letter.dataset.char);
+        checkForZodiacWord();
+        letter.style.pointerEvents = 'none';
+        letter.style.animation = 'none';
+      }
+    });
+
+    document.body.appendChild(letter);
+  }
+
+  document.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  function animate() {
+    let prevX = mouseX;
+    let prevY = mouseY;
+
+    stuckLetters.forEach((obj, i) => {
+      const speed = 0.1 - (i * 0.0015);
+      obj.x += (prevX - obj.x) * speed;
+      obj.y += (prevY - obj.y) * speed;
+      obj.el.style.left = `${obj.x}px`;
+      obj.el.style.top = `${obj.y}px`;
+      obj.el.style.transform = 'translate(-50%, -50%)';
+
+      prevX = obj.x;
+      prevY = obj.y;
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+</script>
+
+</body>
+</html>
+
+
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Zodiac Hover Background Change</title>
+  
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #111;
+      overflow: hidden;
+      transition: background 0.5s ease;
+    }
+
+    .letter {
+      position: absolute;
+      font-size: 12px;
+      font-family: monospace;
+      color: white;
+      pointer-events: auto;
+      user-select: none;
+      animation: float 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(0); }
+      100% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+  const zodiacSigns = [
+    'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
+    'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'
+  ];
+
+  const totalLetters = 200;
+  const stuckLetters = [];
+  const hoveredChars = [];
+
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+
+  // change bg for 2 seconds
+  function changeBackgroundColor() {
+    document.body.style.backgroundColor = 'white';
+    setTimeout(() => {
+      document.body.style.backgroundColor = '#111'; // og bg style
+    }, 2000); // reset after 2 s
+  }
+
+  function checkForZodiacWord() {
+    const currentWord = hoveredChars.join('').toLowerCase();
+    for (const sign of zodiacSigns) {
+      if (currentWord.endsWith(sign)) {
+        changeBackgroundColor();
+        hoveredChars.length = 0; // Reset to avoid multiple triggers
+        break;
+      }
+    }
+  }
+
+  // Create letters
+  for (let i = 0; i < totalLetters; i++) {
+    const letter = document.createElement('div');
+    letter.className = 'letter';
+    const char = alphabet[Math.floor(Math.random() * alphabet.length)];
+    letter.textContent = char;
+    letter.dataset.char = char;
+
+    letter.style.left = `${Math.random() * 100}vw`;
+    letter.style.top = `${Math.random() * 100}vh`;
+
+    if (Math.random() < 0.5) {
+      letter.style.filter = `blur(${(Math.random() * 2).toFixed(1)}px)`;
+    }
+
+    letter.style.animationDelay = `${Math.random() * 2}s`;
+
+    letter.addEventListener('mouseenter', () => {
+      if (!stuckLetters.some(obj => obj.el === letter)) {
+        stuckLetters.push({ el: letter, x: mouseX, y: mouseY });
+        hoveredChars.push(letter.dataset.char);
+        checkForZodiacWord();
+        letter.style.pointerEvents = 'none';
+        letter.style.animation = 'none';
+      }
+    });
+
+    document.body.appendChild(letter);
+  }
+
+  document.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  function animate() {
+    let prevX = mouseX;
+    let prevY = mouseY;
+
+    stuckLetters.forEach((obj, i) => {
+      const speed = 0.1 - (i * 0.0015);
+      obj.x += (prevX - obj.x) * speed;
+      obj.y += (prevY - obj.y) * speed;
+      obj.el.style.left = `${obj.x}px`;
+      obj.el.style.top = `${obj.y}px`;
+      obj.el.style.transform = 'translate(-50%, -50%)';
+
+      prevX = obj.x;
+      prevY = obj.y;
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+</script>
+
+</body>
+</html>

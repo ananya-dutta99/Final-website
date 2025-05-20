@@ -1,0 +1,416 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nightrition Facts</title>
+  <style>
+    /* RESET */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      height: 100vh;
+      background-color: black;
+      overflow: hidden;
+    }
+
+    /* LOADING SCREEN */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background-color: black;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .loading-text {
+      font-family: monospace;
+      font-size: 1rem;
+      margin-top: 1rem;
+      color: white;
+    }
+
+    .loading-bar {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .moon-phase {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: transparent;
+      border: 1px solid white;
+      transition: background-color 0.3s;
+    }
+
+    .moon-phase.filled {
+      background-color: white;
+    }
+
+    /* MAIN CONTENT */
+    #main-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      perspective: 500px;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .nutrition-label {
+      width: 90vw;
+      max-width: 300px;
+      background: white;
+      color: black;
+      border: 8px solid black;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.1s ease-out;
+    }
+
+    .nutrition-header {
+      font-size: 2rem;
+      font-weight: bold;
+      border-bottom: 10px solid black;
+      margin-bottom: 0.5rem;
+    }
+
+    .sub-header {
+      font-size: 0.8rem;
+      margin: 0.2rem 0;
+    }
+
+    .bold {
+      font-weight: bold;
+    }
+
+    .section-divider {
+      border-top: 5px solid black;
+      margin: 0.5rem 0;
+    }
+
+    .nutrient {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid black;
+      padding: 0.3rem 0;
+      font-size: 0.8rem;
+    }
+
+    .indented {
+      padding-left: 1.5rem;
+    }
+
+    .daily-value-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.3rem 0;
+      font-size: 0.8rem;
+    }
+
+    .footer {
+      font-size: 0.7rem;
+      border-top: 1px solid black;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOADING SCREEN -->
+  <div id="loader">
+    <div class="loading-bar" id="moonBar">
+      <!-- Filled dynamically -->
+    </div>
+    <div class="loading-text">predicting night values...</div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main-content">
+    <div class="nutrition-label" id="labelBox">
+      <div class="nutrition-header">Night Values</div>
+      <div class="sub-header">1 serving per day</div>
+      <div class="sub-header bold">Recommended serving size <span style="float:right">7 - 8 hr</span></div>
+      <div class="section-divider"></div>
+      <div class="nutrient bold" style="font-size: 1.8rem; border-bottom: 5px solid black;">
+        <span>Hours</span><span id="hours"></span>
+      </div>
+      <div class="nutrient bold">
+        <span></span><span>% NV*</span>
+      </div>
+      <div class="nutrient">
+        <span>EEG</span>
+      </div>
+      <div class="nutrient indented"><span>N1 Light Sleep</span><span id="n1"></span></div>
+      <div class="nutrient indented"><span>N2 Deeper Sleep</span><span id="n2"></span></div>
+      <div class="nutrient indented"><span>N3 Deep Sleep</span><span id="n3"></span></div>
+      <div class="nutrient indented"><span>REM Sleep</span><span id="rem"></span></div>
+      <div class="nutrient"><span>Heart Rate</span><span id="hr"></span></div>
+      <div class="nutrient"><span>Sleep Efficiency</span><span id="efficiency"></span></div>
+      <div class="nutrient"><span>Midnight cravings</span><span id="cravings"></span></div>
+      <div class="nutrient"><span>Awakenings</span><span id="awakenings"></span></div>
+      <div class="nutrient"><span>Blood Oxygen</span><span id="spo2"></span></div>
+      <div class="section-divider"></div>
+      <div class="daily-value-row"><span>Dream Recall</span><span id="dream"></span></div>
+      <div class="daily-value-row"><span>Lucid Dreaming</span><span id="lucid"></span></div>
+      <div class="daily-value-row"><span>Memory Consolidation</span><span id="memory"></span></div>
+      <div class="daily-value-row"><span>Emotional Reactivity</span><span id="emotion"></span></div>
+      <div class="footer">
+        * The % Nightly Value (NV) tells you how much a serving of sleep contributes to a daily life. 7-8 hours a day is used for general functioning advice.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function random(min, max, decimals = 0) {
+      const val = Math.random() * (max - min) + min;
+      return decimals === 0 ? Math.round(val) : val.toFixed(decimals);
+    }
+
+    function fillData() {
+      const totalHours = parseFloat(random(3, 10, 2));
+      const totalMins = totalHours * 60;
+
+      const n1 = random(2, 5);
+      const n2 = random(45, 55);
+      const n3 = random(13, 23);
+      const rem = random(20, 25);
+
+      document.getElementById("hours").innerText = totalHours;
+      document.getElementById("n1").innerText = `${Math.round(totalMins * n1 / 100)} mins`;
+      document.getElementById("n2").innerText = `${Math.round(totalMins * n2 / 100)} mins`;
+      document.getElementById("n3").innerText = `${Math.round(totalMins * n3 / 100)} mins`;
+      document.getElementById("rem").innerText = `${Math.round(totalMins * rem / 100)} mins`;
+
+      document.getElementById("hr").innerText = `${random(40, 70)} bpm`;
+      document.getElementById("efficiency").innerText = `${random(50, 95)}%`;
+      document.getElementById("cravings").innerText = `${random(5, 50)}%`;
+      document.getElementById("awakenings").innerText = `${random(0, 4)}x`;
+      document.getElementById("spo2").innerText = `${random(90, 98)}%`;
+
+      document.getElementById("dream").innerText = `${random(10, 80)}%`;
+      document.getElementById("lucid").innerText = `${random(1, 20)}%`;
+      document.getElementById("memory").innerText = `${random(10, 30)}%`;
+      document.getElementById("emotion").innerText = `${random(5, 30)}%`;
+    }
+
+    // Handle loading animation
+    const moonBar = document.getElementById("moonBar");
+
+    const totalMoons = 8;
+    for (let i = 0; i < totalMoons; i++) {
+      const dot = document.createElement("div");
+      dot.className = "moon-phase";
+      moonBar.appendChild(dot);
+    }
+
+    let filled = 0;
+    const interval = setInterval(() => {
+      if (filled < totalMoons) {
+        moonBar.children[filled].classList.add("filled");
+        filled++;
+      } else {
+        clearInterval(interval);
+        document.getElementById("loader").style.opacity = 0;
+        setTimeout(() => {
+          document.getElementById("loader").style.display = "none";
+          document.getElementById("main-content").style.opacity = 1;
+          fillData();
+        }, 500);
+      }
+    }, 500); // 8 moons in 4 seconds (500ms each)
+
+    // 3D rotation
+    const label = document.getElementById('labelBox');
+    document.addEventListener('mousemove', (e) => {
+      const { innerWidth: w, innerHeight: h } = window;
+      const x = (e.clientX - w / 2) / (w / 2);
+      const y = (e.clientY - h / 2) / (h / 2);
+      const rotateX = -y * 10;
+      const rotateY = x * 10;
+      label.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+  </script>
+</body>
+</html>
+
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nutrition Facts</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 6rem;
+      background-color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      perspective: 500px;
+    }
+
+    .nutrition-label {
+      width: 90vw;
+      max-width: 200px;
+      background: white;
+      color: black;
+      border: 8px solid black;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.1s ease-out;
+
+    }
+
+    .nutrition-header {
+      font-size: 2rem;
+      font-weight: bold;
+      border-bottom: 10px solid black;
+      margin-bottom: 0.5rem;
+    }
+
+    .sub-header {
+      font-size: 0.7rem;
+      margin: 0.2rem 0;
+    }
+
+    .bold {
+      font-weight: bold;
+    }
+
+    .section-divider {
+      border-top: 5px solid black;
+      margin: 0.5rem 0;
+    }
+
+    .nutrient {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid black;
+      padding: 0.3rem 0;
+      font-size: 0.7rem;
+    }
+
+    .indented {
+      padding-left: 1.5rem;
+    }
+
+    .daily-value-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.3rem 0;
+      font-size: 0.7rem;
+    }
+
+    .footer {
+      font-size: 0.6rem;
+      border-top: 1px solid black;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="nutrition-label" id="labelBox">
+    <div class="nutrition-header">Night Values</div>
+    <div class="sub-header">1 serving per day</div>
+    <div class="sub-header bold">Recommended serving size <span style="float:right">7 - 8 hr</span></div>
+    <div class="section-divider"></div>
+    <div class="nutrient bold" style="font-size: 1.8rem; border-bottom: 5px solid black;">
+      <span>Hours</span><span id="hours"></span>
+    </div>
+    <div class="nutrient bold">
+      <span></span><span>% NV*</span>
+    </div>
+    <div class="nutrient">
+      <span>EEG</span>
+    </div>
+    <div class="nutrient indented"><span>N1 Light Sleep</span><span id="n1"></span></div>
+    <div class="nutrient indented"><span>N2 Deeper Sleep</span><span id="n2"></span></div>
+    <div class="nutrient indented"><span>N3 Deep Sleep</span><span id="n3"></span></div>
+    <div class="nutrient indented"><span>REM Sleep</span><span id="rem"></span></div>
+    <div class="nutrient"><span>Heart Rate</span><span id="hr"></span></div>
+    <div class="nutrient"><span>Sleep Efficiency</span><span id="efficiency"></span></div>
+    <div class="nutrient"><span>Midnight cravings</span><span id="cravings"></span></div>
+    <div class="nutrient"><span>Awakenings</span><span id="awakenings"></span></div>
+    <div class="nutrient"><span>Blood Oxygen</span><span id="spo2"></span></div>
+    <div class="section-divider"></div>
+    <div class="daily-value-row"><span>Dream Recall</span><span id="dream"></span></div>
+    <div class="daily-value-row"><span>Lucid Dreaming</span><span id="lucid"></span></div>
+    <div class="daily-value-row"><span>Memory Consolidation</span><span id="memory"></span></div>
+    <div class="daily-value-row"><span>Emotional Reactivity</span><span id="emotion"></span></div>
+    <div class="footer">
+      * The % Nightly Value (NV) tells you how much a serving of sleep contributes to a daily life. 7-8 hours a day is used for general functioning advice.
+    </div>
+  </div>
+
+  <script>
+    function random(min, max, decimals = 0) {
+      const val = Math.random() * (max - min) + min;
+      return decimals === 0 ? Math.round(val) : val.toFixed(decimals);
+    }
+
+    const totalHours = parseFloat(random(3, 10, 2));
+    const totalMins = totalHours * 60;
+
+    // Sleep stage breakdown based on average % ranges
+    const n1 = random(2, 5);
+    const n2 = random(45, 55);
+    const n3 = random(13, 23);
+    const rem = random(20, 25);
+
+    document.getElementById("hours").innerText = totalHours;
+    document.getElementById("n1").innerText = `${Math.round(totalMins * n1 / 100)} mins`;
+    document.getElementById("n2").innerText = `${Math.round(totalMins * n2 / 100)} mins`;
+    document.getElementById("n3").innerText = `${Math.round(totalMins * n3 / 100)} mins`;
+    document.getElementById("rem").innerText = `${Math.round(totalMins * rem / 100)} mins`;
+
+    document.getElementById("hr").innerText = `${random(40, 70)} bpm`;
+    document.getElementById("efficiency").innerText = `${random(50, 95)}%`;
+    document.getElementById("cravings").innerText = `${random(5, 50)}%`;
+    document.getElementById("awakenings").innerText = `${random(0, 4)}x`;
+    document.getElementById("spo2").innerText = `${random(90, 98)}%`;
+
+    document.getElementById("dream").innerText = `${random(10, 80)}%`;
+    document.getElementById("lucid").innerText = `${random(1, 20)}%`;
+    document.getElementById("memory").innerText = `${random(10, 30)}%`;
+    document.getElementById("emotion").innerText = `${random(5, 30)}%`;
+
+    // 3D rotation
+    const label = document.getElementById('labelBox');
+    document.addEventListener('mousemove', (e) => {
+      const { innerWidth: w, innerHeight: h } = window;
+      const x = (e.clientX - w / 2) / (w / 2);
+      const y = (e.clientY - h / 2) / (h / 2);
+      const rotateX = -y * 10;
+      const rotateY = x * 10;
+      label.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+  </script>
+</body>
+</html>
+
+
+<!--
