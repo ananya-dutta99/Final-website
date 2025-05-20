@@ -104,7 +104,7 @@ const totalCells = cols * rows;
 const cells = [];
 let activeCamCell = null, isSwitching = false;
 
-// Create cell with 4 flickering Zs
+// each grid cell
 function createCell() {
   const cell = document.createElement('div');
   cell.className = 'cell';
@@ -118,6 +118,7 @@ function createCell() {
         z.style.color = Math.random() > 0.5 ? 'white' : 'black';
     }, 100 + Math.random() * 150);
   }
+
   // Background flicker
   setInterval(() => {
     if (cell !== activeCamCell)
@@ -144,7 +145,7 @@ function moveWebcamWindow() {
   canvas.style.top = `${row * height}px`;
 }
 
-// Render grayscale webcam in canvas
+// grayscale
 function drawGrayscaleWebcam() {
   const sx = parseInt(canvas.style.left);
   const sy = parseInt(canvas.style.top);
@@ -211,7 +212,7 @@ video.onloadedmetadata = () => {
   drawGrayscaleWebcam();
   moveWebcamWindow();
 
-  // ✅ Hide the loading screen once the webcam is ready
+  // hide the loading screen once the webcam is ready
   setTimeout(() => {
     document.getElementById('loading-screen').style.display = 'none';
   }, 3000);
@@ -222,6 +223,7 @@ video.onloadedmetadata = () => {
 canvas.width = width;
 canvas.height = height;
 start();
+
 </script>
 </body>
 </html>

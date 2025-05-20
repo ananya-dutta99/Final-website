@@ -15,7 +15,7 @@
       cursor: wait;
     }
 
-    /* Splash screen */
+   
     .splash-screen {
       position: fixed;
       top: 0;
@@ -121,7 +121,7 @@
     const numSpinners = 70;
     const numRaindrops = 50;
 
-    // Create splash screen spinner
+    // single buffer
     function createCenterSpinner(target) {
       const spinner = document.createElement('div');
       spinner.className = 'spinner';
@@ -141,7 +141,7 @@
 
     createCenterSpinner(splashSpinner);
 
-    // After 3 seconds, hide splash and start animation
+    // hide splash and start animation
     setTimeout(() => {
       splash.classList.add('hidden');
 
@@ -210,5 +210,7 @@ function createRaindrop(delay = 0) {
       }, 300);
     }, 3000);
   </script>
+
+
 </body>
 </html>
