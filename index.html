@@ -1,99 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lullalies</title>
+  <meta charset="UTF-8">
+  <title>Scroll Parallax Buttons</title>
   <style>
-    body {
+
+    
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: black;
-      font-family: monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      position: relative;
-      overflow: hidden;
+      height: 100%;
+      background: #111;
+      overflow-x: hidden;
     }
 
-    .circle-nav {
-      position: relative;
-      width: 500px;
-      height: 300px;
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #333;
+  border-radius: 6px;
+  border: 3px solid #111;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333 #111;
+}
+
+ .container {
+  position: relative;
+  width: 100%;
+  min-height: 2000px; /* long scrollable area */
+  box-sizing: border-box;
+}
+
+   
+
+  .link-button {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  line-height: 80px;
+  border-radius: 40%; /* Makes it a circle */
+  padding: 0;
+  background-color: #ffffff;
+  color: rgb(5, 5, 5);
+  border: none;
+  font-family:monospace;
+  text-align: center;
+  text-decoration: none;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.6); /* Glow */
+  will-change: transform;
+  transition: box-shadow 0.3s ease, background-color 0.3s ease;
+  opacity: 60%;
+}
+    
+
+    .link-button:hover {
+      background-color: #9dace8;
+      opacity: 100%;}
+    
+
+
+    /* Style variations (optional) */
+    .btn-1 { background-color: #d9c5bf; }
+    .btn-2 { background-color: #aabec7; }
+    .btn-3 { background-color: #aec7ae; }
+    .btn-4 { background-color: #c3aec6; }
+    .btn-5 { background-color: #cbc4b0; color: #000; }
+
+
+  .floating-gif {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px; /* or any size you want */
+  z-index: 10;
+  top: 70vh; /* Start 80% from top (i.e. lower on screen) */
+  pointer-events: none; /* Optional: so it doesn’t block interactions */
+  animation: opacit 2s infinite;
+}
+
+@keyframes opacit {
+      0%   {opacity:30%;}
+      50%  {opacity:80%;}
+      100% {opacity: 30%;}
     }
 
-    .nav-button {
-      position: absolute;
-      width: 100px;
-      height: 30px;
-      background-color: white;
-      color: black;
-      border: none;
-      cursor: pointer;
-      text-align: center;
-      line-height: 30px;
-      font-family: monospace;
-      border-radius: 5px;
-      transition: background 0.3s;
-      text-decoration: none;
-      animation: float 2s ease-in-out infinite;
-    }
+.background-text {
+  position: relative;
+  padding: 1px 1%;
+  z-index: 1;
+  font-family: "Rubik Glitch";
+  letter-spacing:3em
+}
 
-    .nav-button:hover {
-      background-color: #ccc;
-    }
+.background-text p {
+  font-size: 10vw;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.05);
+  margin: 00px 0;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+}
 
-    /* buttons in circle */
-    .nav-button:nth-child(1) { top: 0%; left: 50%; transform: translate(-50%, -50%); }
-    .nav-button:nth-child(2) { top: 25%; left: 85%; transform: translate(-50%, -50%); }
-    .nav-button:nth-child(3) { top: 75%; left: 85%; transform: translate(-50%, -50%); }
-    .nav-button:nth-child(4) { top: 100%; left: 50%; transform: translate(-50%, -50%); }
-    .nav-button:nth-child(5) { top: 75%; left: 15%; transform: translate(-50%, -50%); }
-    .nav-button:nth-child(6) { top: 25%; left: 15%; transform: translate(-50%, -50%); }
+.button-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
 
-    /* side headings */
-    .side-text {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      font-family: monospace;
-      font-size: 12px;
-      color: white;
-      opacity: 0.6;
-      animation: float 3s ease-in-out infinite;
-    }
 
-    .left-text {
-      left: 70px;
-    }
-
-    .right-text {
-      right: 70px;
-    }
-
-    @keyframes float {
-      0%, 100% {
-        transform: translateY(-50%) translateY(-2px);
-      }
-      50% {
-        transform: translateY(-50%) translateY(2px);
-      }
-    }
   </style>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Rubik+Glitch&display=swap');
+</style>
+
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 </head>
 <body>
-  <div class="side-text left-text">lullaby</div>
-  <div class="side-text right-text">lullalie</div>
 
-  <div class="circle-nav">
-    <a href="scattered-zodiac.html" class="nav-button">Star Count</a>
-    <a href="rain-buffer.html" class="nav-button">Buffer sleep</a>
-    <a href="gsap.html" class="nav-button">?</a>
-    <a href="craving.html" class="nav-button">Nightrition</a>
-    <a href="noise.html" class="nav-button">Brain Noise</a>
-    <a href="white-black-eye.html" class="nav-button">Locked in</a>
+
+<div class="container" id="container">
+
+
+    <div class="background-text">
+      <p>LULLABYE</p>
+      <p>LULLALIE</p>
+      <p>LULLABYE</p>
+      <p>LULLALIE</p>
+      <p>LULLABYE</p>
+      <p>LULLALIE</p>
+      <p>LULLABYE</p>
+      <p>LULLALIE</p>
+      <p>LULLABYE</p>
+      <p>LULLALIE</p>
+      <p>LULLABYE</p>
+      <p>LULLALIE</p>
+      <p>LULLABYE</p>
+      <p>LULLALIE</p>
+      <p>LULLABYE</p>
+      <p>LULLALIE</p>
+      <p>LULLABYE</p>
+      <p>LULLALIE</p>
+      <p>LULLABYE</p>
+      <p>LULLALIE</p>
+    
+    </div>
+
+   
+  <div class="button-layer" id="buttonContainer"></div>
+
   </div>
+
+<img src="f2.gif" alt="falling" class="floating-gif">
+
+  <script>
+    
+    gsap.registerPlugin(ScrollTrigger);
+
+    ScrollTrigger.scroller = document.body;
+
+
+    const buttonConfigs = [
+      { label: "★", url: "scattered-zodiac.html", class: "btn-1" },
+      { label: "👁", url: "white-black-eye.html", class: "btn-2" },
+      { label: "🌧", url: "rain-buffer.html", class: "btn-3" },
+      { label: "⏾", url: "craving.html", class: "btn-4" },
+      { label: "z", url: "noise-cam.html", class: "btn-5" }
+    ];
+
+    const container = document.getElementById("buttonContainer");
+    const totalButtons = 50;
+
+    for (let i = 0; i < totalButtons; i++) {
+      const config = buttonConfigs[Math.floor(Math.random() * buttonConfigs.length)];
+
+      const a = document.createElement("a");
+      a.classList.add("link-button", config.class);
+      a.href = config.url;
+      a.textContent = config.label;
+      a.target = "_blank"; 
+
+      const size = 40 + Math.random() * 80;
+      a.style.width = `${size}px`;
+      a.style.height = `${size}px`;
+      a.style.lineHeight = `${size}px`;
+      a.style.fontSize = `${size * 0.25}px`;
+
+      
+      // Randomizing buttons
+      const top = Math.random() * 2000;
+      const left = Math.random() * 100;
+
+      a.style.top = `${top}px`;
+      a.style.left = `${left}%`;
+
+      container.appendChild(a);
+
+      const rotation = 180 + Math.random() * 900;
+      const speedFactor = 1 + Math.random()*2; // For parallax
+
+      // scroll based movement/rotate
+      gsap.to(a, {
+        scrollTrigger: {
+          trigger: container,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: true
+        },
+        y: -top * (1 - speedFactor),
+        rotation: rotation,
+        ease: "none"
+      });
+    }
+
+
+gsap.to(".floating-gif", {
+  scrollTrigger: {
+    trigger: container, 
+    start: "top top",
+    end: "bottom bottom",
+    scrub: true
+  },
+  top: "-60vh", //gif scroll position
+  ease: "none"
+});
+    
+gsap.to(".background-text", {
+  y: -500,
+  scrollTrigger: {
+    trigger: container,
+    start: "top top",
+    end: "bottom bottom",
+    scrub: true
+  }
+});
+
+
+  </script>
+
 </body>
 </html>
