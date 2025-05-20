@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Scroll Parallax Buttons</title>
+  <title>Lulla-bye</title>
   <style>
 
     
@@ -36,40 +36,36 @@
  .container {
   position: relative;
   width: 100%;
-  min-height: 2000px; /* long scrollable area */
+  min-height: 2000px; /* scroll length */
   box-sizing: border-box;
 }
 
-   
 
   .link-button {
   position: absolute;
   width: 80px;
   height: 80px;
   line-height: 80px;
-  border-radius: 40%; /* Makes it a circle */
+  border-radius: 40%; 
   padding: 0;
-  background-color: #ffffff;
   color: rgb(5, 5, 5);
   border: none;
   font-family:monospace;
   text-align: center;
   text-decoration: none;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.6); /* Glow */
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.6); 
   will-change: transform;
   transition: box-shadow 0.3s ease, background-color 0.3s ease;
   opacity: 60%;
 }
     
 
-    .link-button:hover {
-      background-color: #9dace8;
-      opacity: 100%;}
+ .link-button:hover {
+    background-color: #9dace8;
+    opacity: 100%;}
     
 
-
-    /* Style variations (optional) */
     .btn-1 { background-color: #d9c5bf; }
     .btn-2 { background-color: #aabec7; }
     .btn-3 { background-color: #aec7ae; }
@@ -81,10 +77,10 @@
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  width: 800px; /* or any size you want */
+  width: 800px; 
   z-index: 10;
-  top: 70vh; /* Start 80% from top (i.e. lower on screen) */
-  pointer-events: none; /* Optional: so it doesn’t block interactions */
+  top: 70vh; 
+  pointer-events: none; 
   animation: opacit 2s infinite;
 }
 
@@ -122,8 +118,8 @@
   z-index: 2;
 }
 
-
   </style>
+
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Rubik+Glitch&display=swap');
@@ -132,9 +128,12 @@
  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-</head>
-<body>
 
+
+</head>
+
+
+<body>
 
 <div class="container" id="container">
 
